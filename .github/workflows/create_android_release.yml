@@ -1,0 +1,74 @@
+name: Build and Release APK
+
+# Trigger the workflow on pushing a tag or manually
+on:
+  push:
+    branches:
+      - master
+    tags:
+      # Example: v1.0.0
+      - 'v*'
+  workflow_dispatch: # This allows manual triggers via GitHub UI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Step 2: Set up JDK 8
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          java-version: 17
+          distribution: 'adopt'
+
+      # Step 3: Decode Keystore from GitHub Secrets and Save
+      - name: Decode Keystore from GitHub Secrets and Save
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > keystore.jks
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # Step 4: Build APK for "app" module
+      - name: Build APK for WhatsApp Direct
+        run: |
+          ./gradlew :app:assembleRelease
+          mv composeApp/build/outputs/apk/release/composeApp-release.apk composeApp/build/outputs/apk/release/ACCA_Helps.apk
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}  # Pass the secret as environment variables
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}  # Pass the secret as environment variables
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}  # Pass the secret as environment variables
+
+      # Step 5: Create GitHub Release and Upload the APKs
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: true
+          prerelease: false
+
+      - name: Upload App 🚀
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: composeApp/build/outputs/apk/release/ACCA_Helps.apk
+          asset_name: ACCA_Helps.apk
+          asset_content_type: application/apk
+
+      # Step 6: Clean up keystore file
+      - name: Clean up keystore file
+        run: |
+          rm -f keystore.jks
