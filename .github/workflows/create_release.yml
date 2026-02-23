@@ -62,7 +62,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mac-dmg
-          path: desktopApp/build/compose/binaries/*/*.dmg
+          path: composeApp/build/compose/binaries/**/*.dmg
 
   # Windows job
   build-windows:
@@ -82,7 +82,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-exe
-          path: desktopApp/build/compose/binaries/*/*.exe
+          path: composeApp/build/compose/binaries/**/*.exe
 
   release:
     needs: [build-android, build-macos, build-windows]
@@ -91,58 +91,37 @@ jobs:
       - uses: actions/checkout@v4
 
       # Download artifacts from other jobs
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: android-apk
           path: release/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: mac-dmg
           path: release/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: windows-exe
           path: release/
 
-      # Create GitHub Release
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: ${{ github.ref_name }}
-          draft: true
-          prerelease: false
+      - name: Flatten release folder
+        run: |
+          find release -name "*.dmg" -exec mv {} release/ \;
+          find release -name "*.exe" -exec mv {} release/ \;
+
+      - name: Log release folder
+        run: ls -R release
 
       # Upload all artifacts
-      - name: Upload APK
-        uses: actions/upload-release-asset@v1
+      - name: Create Release & Upload Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: true
+          files: |
+            release/*.dmg
+            release/*.exe
+            release/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/ACCA_Buddy.apk
-          asset_name: ACCA_Buddy.apk
-          asset_content_type: application/vnd.android.package-archive
-
-      - name: Upload DMG
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/*.dmg
-          asset_name: ACCA_Buddy-mac.dmg
-          asset_content_type: application/x-apple-diskimage
-
-      - name: Upload EXE
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release/*.exe
-          asset_name: ACCA_Buddy-windows.exe
-          asset_content_type: application/vnd.microsoft.portable-executable
