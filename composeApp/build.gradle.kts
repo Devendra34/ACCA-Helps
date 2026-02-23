@@ -114,16 +114,17 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
-            packageName = "com.devtech.accahelps"
+            packageName = "ACCA Buddy"
             packageVersion = "1.0.0"
             linux {
                 iconFile.set(project.file("src/commonMain/composeResources/drawable/app_logo.png"))
             }
             macOS {
-                iconFile.set(project.file("src/commonMain/composeResources/drawable/app_logo.png"))
+                dockName = "ACCA Buddy"
+                iconFile.set(project.file("src/jvmMain/resources/app_logo.icns"))
             }
             windows {
-                iconFile.set(project.file("src/commonMain/composeResources/drawable/app_logo.png"))
+                iconFile.set(project.file("src/jvmMain/resources/app_logo.ico"))
             }
         }
     }
