@@ -5,17 +5,18 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 fun main() = application {
     val dataStore = remember { initDesktopDataStore() }
     val container = remember { AppContainer(dataStore) }
     val state = rememberWindowState()
-    val icon = painterResource(Res.drawable.app_logo) // References resources/icon.png
+
     Window(
         onCloseRequest = ::exitApplication,
         state = state,
-        title = "ACCAHelps",
-        icon = icon
+        title = stringResource(Res.string.app_name),
+        icon = painterResource(Res.drawable.app_logo)
     ) {
         QuestionPickerApp(repository = container.repository)
     }
