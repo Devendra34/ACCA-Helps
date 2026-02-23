@@ -64,7 +64,11 @@ fun ResultDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Generated Question Set", style = MaterialTheme.typography.headlineSmall)
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text =  "Question Set",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
                     IconButton(onClick = onDismiss) {
                         Icon(Icons.Default.Close, contentDescription = "Close")
                     }
