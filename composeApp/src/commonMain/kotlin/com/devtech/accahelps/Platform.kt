@@ -4,9 +4,9 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
-import com.devtech.accahelps.domain.QuestionRepository
-import kotlinx.serialization.json.Json
+import com.devtech.accahelps.domain.repo.JsonQuestionRepository
 import okio.Path.Companion.toPath
+import java.io.File
 
 interface Platform {
     val name: String
@@ -22,14 +22,8 @@ fun createDataStore(producePath: () -> String): DataStore<Preferences> =
         produceFile = { producePath().toPath().toFile() }
     )
 
-const val DATASTORE_FILE_NAME = "questions.preferences_pb"
+const val DATASTORE_FILE_NAME = "app_state.json"
 
-class AppContainer(dataStore: DataStore<Preferences>) {
-    private val json = Json {
-        ignoreUnknownKeys = true
-        prettyPrint = false
-        encodeDefaults = true
-    }
-
-    val repository = QuestionRepository(dataStore, json)
+class AppContainer(storeFolder: File) {
+    val repository = JsonQuestionRepository(File(storeFolder, DATASTORE_FILE_NAME))
 }

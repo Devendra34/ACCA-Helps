@@ -2,9 +2,8 @@ package com.devtech.accahelps
 
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.platform.ClipEntry
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import java.awt.datatransfer.StringSelection
+import java.io.File
 
 class JVMPlatform : Platform {
     override val name: String = "Java ${System.getProperty("java.version")}"
@@ -12,10 +11,11 @@ class JVMPlatform : Platform {
 
 actual fun getPlatform(): Platform = JVMPlatform()
 
-fun initDesktopDataStore(): DataStore<Preferences> = createDataStore {
-    val dataDir = System.getProperty("user.home") + "/.accaHelp"
-    java.io.File(dataDir).mkdirs()
-    "$dataDir/$DATASTORE_FILE_NAME"
+fun getStorePath(appName: String): File {
+    val dataDir = System.getProperty("user.home") + "/.$appName"
+    val folder = File(dataDir)
+    folder.mkdirs()
+    return folder
 }
 
 @OptIn(ExperimentalComposeUiApi::class)

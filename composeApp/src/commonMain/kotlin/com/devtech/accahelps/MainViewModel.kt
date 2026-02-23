@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
-import com.devtech.accahelps.domain.IQuestionRepository
 import com.devtech.accahelps.domain.QuestionFactory
 import com.devtech.accahelps.domain.QuestionsSelector
+import com.devtech.accahelps.domain.repo.IQuestionRepository
 import com.devtech.accahelps.model.AppSettings
 import com.devtech.accahelps.model.Question
 import com.devtech.accahelps.model.Section
@@ -92,12 +92,9 @@ class MainViewModel(
 
             // Perform randomization
             val results = sections.filter { it.isEnabled.value }.associate { sectionState ->
-                val pool = sectionState.sourcesState
-                    .filter { it.isSelected.value }
-                    .flatMap { questions.questionFor(sectionState.section, it.source) }
+                val selected = QuestionsSelector.selectedQuestions(sectionState, questions)
 
-                val maxQuestions = QuestionsSelector.maxQuestionsFor(sectionState.section)
-                sectionState.section to pool.shuffled().take(maxQuestions)
+                sectionState.section to selected.toList()
             }
 
             _uiState.update {

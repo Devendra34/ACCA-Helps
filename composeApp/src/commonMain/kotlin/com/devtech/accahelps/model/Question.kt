@@ -12,19 +12,32 @@ sealed class Question(
 
     abstract val fullPath: String
 
+    abstract val sourcePath: String
+
+    abstract val isImportant: Boolean // New Property
+
     @Serializable
     @SerialName("Kaplan")
-    data class Kaplan(val number: String, override val section: Section) :
-        Question(source = Source.Kaplan) {
+    data class Kaplan(
+        val number: String,
+        override val section: Section,
+        override val isImportant: Boolean = false
+    ) : Question(source = Source.Kaplan) {
+        override val fullPath: String get() = "${source.label}: Q$number${if (isImportant) " ⭐" else ""}"
 
-        override val fullPath: String = "${source.label}: Q$number"
+        override val sourcePath: String get() = "Q$number${if (isImportant) " ⭐" else ""}"
     }
 
     @Serializable
     @SerialName("Bpp")
-    data class Bpp(val number: String, override val section: Section) :
-        Question(source = Source.Bpp) {
-        override val fullPath: String = "${source.label}: Q$number"
+    data class Bpp(
+        val number: String,
+        override val section: Section,
+        override val isImportant: Boolean = false
+    ) : Question(source = Source.Bpp) {
+        override val fullPath: String get() = "${source.label}: Q$number${if (isImportant) " ⭐" else ""}"
+
+        override val sourcePath: String get() = "Q$number${if (isImportant) " ⭐" else ""}"
     }
 
     @Serializable
@@ -34,9 +47,15 @@ sealed class Question(
         val questionType: String,
         val chapterNumber: String,
         val questionNumber: String,
+        override val isImportant: Boolean = false
     ) : Question(source = Source.StudyHub) {
-        override val fullPath: String =
-            "${source.label}: $questionType: CH-$chapterNumber, Q-$questionNumber"
+        override val fullPath: String
+            get() =
+                "${source.label}: $questionType: CH-$chapterNumber, Q-$questionNumber${if (isImportant) " ⭐" else ""}"
+
+        override val sourcePath: String
+            get() =
+                "$questionType: CH-$chapterNumber, Q-$questionNumber${if (isImportant) " ⭐" else ""}"
     }
 }
 

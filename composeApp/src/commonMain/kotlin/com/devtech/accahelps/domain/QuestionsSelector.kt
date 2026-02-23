@@ -2,9 +2,37 @@ package com.devtech.accahelps.domain
 
 import com.devtech.accahelps.model.Question
 import com.devtech.accahelps.model.Section
+import com.devtech.accahelps.model.SectionState
+import com.devtech.accahelps.model.questionFor
 import com.devtech.accahelps.util.TimeFormatter
 
 object QuestionsSelector {
+
+    fun selectedQuestions(
+        sectionState: SectionState,
+        questions: List<Question>
+    ): MutableList<Question> {
+
+        val pool = sectionState.sourcesState
+            .filter { it.isSelected.value }
+            .flatMap { questions.questionFor(sectionState.section, it.source) }
+        val maxQuestions = maxQuestionsFor(sectionState.section)
+
+        val importantOnes = pool.filter { it.isImportant }.shuffled()
+        val normalOnes = pool.filter { !it.isImportant }.shuffled()
+
+        val selected = mutableListOf<Question>()
+
+        if (importantOnes.isNotEmpty()) {
+            selected.add(importantOnes.first())
+
+            val remainingPool = (importantOnes.drop(1) + normalOnes).shuffled()
+            selected.addAll(remainingPool.take(maxQuestions - 1))
+        } else {
+            selected.addAll(pool.shuffled().take(maxQuestions))
+        }
+        return selected
+    }
 
     fun maxQuestionsFor(
         section: Section,

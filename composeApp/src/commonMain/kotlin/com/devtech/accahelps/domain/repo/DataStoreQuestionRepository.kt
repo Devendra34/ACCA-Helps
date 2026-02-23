@@ -1,28 +1,17 @@
-package com.devtech.accahelps.domain
+package com.devtech.accahelps.domain.repo
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.devtech.accahelps.domain.FixedQuestionsSet
 import com.devtech.accahelps.model.AppSettings
 import com.devtech.accahelps.model.Question
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.serialization.json.Json
 
-interface IQuestionRepository {
-    fun getQuestionsFlow(): Flow<List<Question>>
-
-    val settingsFlow: Flow<AppSettings>
-    suspend fun updateQuestions(transform: (List<Question>) -> List<Question>)
-
-    suspend fun saveSettings(settings: AppSettings)
-}
-
-class QuestionRepository(
+class DataStoreQuestionRepository(
     private val dataStore: DataStore<Preferences>,
     private val json: Json
 ) : IQuestionRepository {
@@ -68,31 +57,9 @@ class QuestionRepository(
         }
     }
 
-    companion object {
+    companion object Companion {
         private val QUESTIONS_KEY = stringPreferencesKey("saved_questions")
         private val SETTINGS_KEY = stringPreferencesKey("app_settings")
 
-    }
-}
-
-class DemoQuestionsRepository : IQuestionRepository {
-    private val questions = MutableStateFlow(
-        FixedQuestionsSet.getInitialAssetQuestions()
-    )
-
-    private val appSettings = MutableStateFlow(
-        AppSettings()
-    )
-
-    override fun getQuestionsFlow(): Flow<List<Question>> = questions.asStateFlow()
-
-    override val settingsFlow: Flow<AppSettings> = appSettings.asStateFlow()
-
-    override suspend fun updateQuestions(transform: (List<Question>) -> List<Question>) {
-        questions.update { transform(it) }
-    }
-
-    override suspend fun saveSettings(settings: AppSettings) {
-        appSettings.value = settings
     }
 }

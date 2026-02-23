@@ -44,11 +44,11 @@ fun ViewQuestionsDialog(
         onDismissRequest = onDismiss,
         title = {
             Column {
-                Text("${source.label} Questions")
+                Text(section.label)
                 Text(
-                    text = "Section: ${section.label}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.outline
+                    text = source.label,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
@@ -90,7 +90,7 @@ fun QuestionListItem(question: Question, onDelete: () -> Unit) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = question.fullPath,
+                    text = question.sourcePath,
                     style = MaterialTheme.typography.bodyMedium
                 )
                 // If it's StudyHub, show extra details as a sub-caption

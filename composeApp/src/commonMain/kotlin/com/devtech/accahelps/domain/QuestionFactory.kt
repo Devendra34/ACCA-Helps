@@ -41,6 +41,7 @@ object QuestionFactory {
                 }
             } else if (rangeParts.size == 1) {
                 // It's a single number: e.g., "10"
+                if (rangeParts[0].isBlank()) continue
                 questionsToAdd.add(
                     newQuestion(source, rangeParts[0], section, type, studyHubChapter)
                 )

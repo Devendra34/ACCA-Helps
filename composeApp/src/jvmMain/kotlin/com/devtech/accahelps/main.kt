@@ -8,14 +8,14 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 fun main() = application {
-    val dataStore = remember { initDesktopDataStore() }
-    val container = remember { AppContainer(dataStore) }
+    val appName = stringResource(Res.string.app_name)
+    val container = remember { AppContainer(getStorePath(appName)) }
     val state = rememberWindowState()
 
     Window(
         onCloseRequest = ::exitApplication,
         state = state,
-        title = stringResource(Res.string.app_name),
+        title = appName,
         icon = painterResource(Res.drawable.app_logo)
     ) {
         QuestionPickerApp(repository = container.repository)

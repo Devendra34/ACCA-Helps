@@ -21,8 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.devtech.accahelps.domain.DemoQuestionsRepository
-import com.devtech.accahelps.domain.IQuestionRepository
+import com.devtech.accahelps.domain.repo.DemoQuestionsRepository
+import com.devtech.accahelps.domain.repo.IQuestionRepository
 import com.devtech.accahelps.model.Section
 import com.devtech.accahelps.model.Source
 import com.devtech.accahelps.ui.AddQuestionDialog
