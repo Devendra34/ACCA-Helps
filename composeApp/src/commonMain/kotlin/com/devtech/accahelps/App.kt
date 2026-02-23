@@ -76,8 +76,15 @@ fun QuestionPickerApp(
                 AddQuestionDialog(
                     section = it.first,
                     selectedSource = it.second,
-                    onConfirm = { qRange, type, chapter ->
-                        viewModel.addQuestionRange(it.second, it.first, qRange, type, chapter)
+                    onConfirm = { qRange, type, chapter, imp ->
+                        viewModel.addQuestionRange(
+                            it.second,
+                            it.first,
+                            qRange,
+                            type,
+                            chapter,
+                            imp
+                        )
                         selectedSectionSource = null
                     },
                     onDismiss = {

@@ -116,11 +116,12 @@ class MainViewModel(
         section: Section,
         inputRange: String,
         type: String = "",
-        studyHubChapter: String = ""
+        studyHubChapter: String = "",
+        isImportant: Boolean
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             val newOnes = QuestionFactory.newQuestions(
-                source, section, inputRange, type, studyHubChapter
+                source, section, inputRange, type, studyHubChapter, isImportant
             )
             repository.updateQuestions { current -> current + newOnes }
         }

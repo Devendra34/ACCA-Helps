@@ -10,9 +10,10 @@ object QuestionFactory {
         source: Source,
         section: Section,
         inputRange: String,
-        type: String,
-        studyHubChapter: String
-    ): MutableList<Question> {
+        type: String = "",
+        studyHubChapter: String = "",
+        isImportant: Boolean = false
+    ): List<Question> {
         val questionsToAdd = mutableListOf<Question>()
 
         // 1. Split by comma to get discrete parts (e.g., "1-5, 10, 12-14")
@@ -36,34 +37,40 @@ object QuestionFactory {
                 val range = if (start <= end) start..end else start downTo end
                 for (i in range) {
                     questionsToAdd.add(
-                        newQuestion(source, i.toString(), section, type, studyHubChapter)
+                        newQuestion(
+                            source,
+                            i.toString(),
+                            section,
+                            type,
+                            studyHubChapter,
+                            isImportant
+                        )
                     )
                 }
             } else if (rangeParts.size == 1) {
                 // It's a single number: e.g., "10"
                 if (rangeParts[0].isBlank()) continue
                 questionsToAdd.add(
-                    newQuestion(source, rangeParts[0], section, type, studyHubChapter)
+                    // Pass isImportant to your helper
+                    newQuestion(source, rangeParts[0], section, type, studyHubChapter, isImportant)
                 )
             }
         }
-
-        // Optional: Ensure the list is distinct if the user inputs "1-3, 2, 3"
-        return questionsToAdd.distinctBy { it.fullPath }.toMutableList()
+        return questionsToAdd.distinctBy { it.fullPath }
     }
 
     fun newQuestion(
         source: Source,
-        num: String,
+        number: String,
         section: Section,
         type: String,
-        ch: String
+        chapter: String,
+        isImportant: Boolean
     ): Question {
         return when (source) {
-            Source.Kaplan -> Question.Kaplan(num, section)
-            Source.Bpp -> Question.Bpp(num, section)
-            Source.StudyHub -> Question.StudyHub(section, type, ch, num)
+            Source.Kaplan -> Question.Kaplan(number, section, isImportant)
+            Source.Bpp -> Question.Bpp(number, section, isImportant)
+            Source.StudyHub -> Question.StudyHub(section, type, chapter, number, isImportant)
         }
     }
-
 }

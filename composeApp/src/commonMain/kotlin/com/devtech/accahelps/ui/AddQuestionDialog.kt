@@ -30,7 +30,7 @@ fun AddQuestionDialog(
     section: Section,
     selectedSource: Source,
     onDismiss: () -> Unit,
-    onConfirm: (String, String, String) -> Unit
+    onConfirm: (String, String, String, Boolean) -> Unit
 ) {
     var rangeInput by remember { mutableStateOf("") } // "1-20"
     var chInput by remember { mutableStateOf("") }
@@ -85,7 +85,7 @@ fun AddQuestionDialog(
         },
         confirmButton = {
             Button(onClick = {
-                onConfirm(rangeInput, typeInput, chInput)
+                onConfirm(rangeInput, typeInput, chInput, isImportant)
                 onDismiss()
             }) { Text("Add") }
         }
