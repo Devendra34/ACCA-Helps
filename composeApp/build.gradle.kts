@@ -1,6 +1,6 @@
-import com.android.build.api.dsl.androidLibrary
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -52,6 +52,15 @@ kotlin {
     }
 }
 
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+fun getEnvOrLocal(key: String): String? {
+    return System.getenv(key) ?: localProperties[key]?.toString()
+}
+
 android {
     namespace = "com.devtech.accahelps"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -68,14 +77,30 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-        }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("../keystore.jks")
+            storePassword = getEnvOrLocal("KEYSTORE_PASSWORD")
+            keyAlias = getEnvOrLocal("KEY_ALIAS")
+            keyPassword = getEnvOrLocal("KEY_PASSWORD")
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.getByName("release")
+        }
     }
 }
 
