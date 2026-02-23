@@ -10,6 +10,9 @@ on:
       - 'v*'
   workflow_dispatch: # This allows manual triggers via GitHub UI
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -37,9 +40,9 @@ jobs:
         run: chmod +x gradlew
 
       # Step 4: Build APK for "app" module
-      - name: Build APK for WhatsApp Direct
+      - name: Build APK
         run: |
-          ./gradlew :app:assembleRelease
+          ./gradlew :composeApp:assembleRelease
           mv composeApp/build/outputs/apk/release/composeApp-release.apk composeApp/build/outputs/apk/release/ACCA_Helps.apk
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}  # Pass the secret as environment variables
