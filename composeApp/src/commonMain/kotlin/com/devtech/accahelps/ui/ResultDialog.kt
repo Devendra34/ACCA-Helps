@@ -1,5 +1,6 @@
 package com.devtech.accahelps.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Button
@@ -22,14 +24,15 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -37,6 +40,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.devtech.accahelps.domain.QuestionsSelector
 import com.devtech.accahelps.model.Question
 import com.devtech.accahelps.model.Section
+import com.devtech.accahelps.shareToWhatsApp
 import com.devtech.accahelps.toClipEntry
 import kotlinx.coroutines.launch
 
@@ -66,7 +70,7 @@ fun ResultDialog(
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text =  "Question Set",
+                        text = "Question Set",
                         style = MaterialTheme.typography.headlineSmall
                     )
                     IconButton(onClick = onDismiss) {
@@ -111,7 +115,10 @@ fun ResultDialog(
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Edit Selection") }
+                    ShareWaButton {
+                        val formattedText = QuestionsSelector.formatQuestions(questionsBySection)
+                        shareToWhatsApp(formattedText)
+                    }
                     Spacer(Modifier.width(8.dp))
                     CopyButton {
                         val formattedText = QuestionsSelector.formatQuestions(questionsBySection)
@@ -122,6 +129,27 @@ fun ResultDialog(
                 }
             }
         }
+    }
+}
+
+
+@Composable
+fun ShareWaButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    OutlinedButton(
+        modifier = modifier,
+        onClick = onClick,
+        border = BorderStroke(1.dp, Color(0xFF25D366)) // WhatsApp Green border
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Default.Chat, // Or a custom WhatsApp SVG
+            contentDescription = "Share to WhatsApp",
+            tint = Color(0xFF25D366)
+        )
+        Spacer(Modifier.width(8.dp))
+        Text("WhatsApp")
     }
 }
 

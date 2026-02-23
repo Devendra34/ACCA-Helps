@@ -2,8 +2,11 @@ package com.devtech.accahelps
 
 import android.content.ClipData
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.compose.ui.platform.ClipEntry
+import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 
@@ -21,3 +24,12 @@ actual fun String.toClipEntry(): ClipEntry {
     val clipData = ClipData.newPlainText(this, this)
     return ClipEntry(clipData)
 }
+
+actual fun openUrl(url: String) {
+    val intent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    MainApp.instance?.startActivity(intent)
+}
+
+actual fun String.urlEncode() = Uri.encode(this)
