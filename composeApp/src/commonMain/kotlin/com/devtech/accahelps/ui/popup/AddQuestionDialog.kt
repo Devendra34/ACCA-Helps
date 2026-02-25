@@ -1,4 +1,4 @@
-package com.devtech.accahelps.ui
+package com.devtech.accahelps.ui.popup
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.devtech.accahelps.domain.QuestionRangeInput
 import com.devtech.accahelps.model.Section
 import com.devtech.accahelps.model.Source
 
@@ -30,7 +31,7 @@ fun AddQuestionDialog(
     section: Section,
     selectedSource: Source,
     onDismiss: () -> Unit,
-    onConfirm: (String, String, String, Boolean) -> Unit
+    onConfirm: (QuestionRangeInput) -> Unit
 ) {
     var rangeInput by remember { mutableStateOf("") } // "1-20"
     var chInput by remember { mutableStateOf("") }
@@ -85,7 +86,16 @@ fun AddQuestionDialog(
         },
         confirmButton = {
             Button(onClick = {
-                onConfirm(rangeInput, typeInput, chInput, isImportant)
+                onConfirm(
+                    QuestionRangeInput(
+                        selectedSource,
+                        section,
+                        rangeInput,
+                        typeInput,
+                        chInput,
+                        isImportant
+                    )
+                )
                 onDismiss()
             }) { Text("Add") }
         }

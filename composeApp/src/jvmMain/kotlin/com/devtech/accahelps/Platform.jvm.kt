@@ -16,10 +16,30 @@ class JVMPlatform : Platform {
 actual fun getPlatform(): Platform = JVMPlatform()
 
 fun getStorePath(appName: String): File {
-    val dataDir = System.getProperty("user.home") + "/.$appName"
-    val folder = File(dataDir)
-    folder.mkdirs()
-    return folder
+    val os = System.getProperty("os.name").lowercase()
+    val userHome = System.getProperty("user.home")
+
+    val dataDir = when {
+        os.contains("win") -> {
+            // Windows: C:\Users\Name\AppData\Roaming\appName
+            val appData = System.getenv("APPDATA")
+            if (appData != null) File(appData, appName)
+            else File(userHome, "AppData/Roaming/$appName")
+        }
+        os.contains("mac") -> {
+            // macOS: /Users/Name/Library/Application Support/appName
+            File(userHome, "Library/Application Support/$appName")
+        }
+        else -> {
+            // Linux/Unix: /home/name/.appName (Standard XDG hidden folder)
+            File(userHome, ".$appName")
+        }
+    }
+
+    if (!dataDir.exists()) {
+        dataDir.mkdirs()
+    }
+    return dataDir
 }
 
 @OptIn(ExperimentalComposeUiApi::class)

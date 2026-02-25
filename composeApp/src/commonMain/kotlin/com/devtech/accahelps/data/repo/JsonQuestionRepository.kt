@@ -1,5 +1,7 @@
-package com.devtech.accahelps.domain.repo
+package com.devtech.accahelps.data.repo
 
+import com.devtech.accahelps.domain.repo.AppState
+import com.devtech.accahelps.domain.repo.IQuestionRepository
 import com.devtech.accahelps.model.AppSettings
 import com.devtech.accahelps.model.Question
 import kotlinx.coroutines.CoroutineScope
@@ -36,7 +38,15 @@ class JsonQuestionRepository(
     override val settingsFlow: Flow<AppSettings> =
         state.map { it.settings }
 
-    override suspend fun updateQuestions(
+    override suspend fun addQuestions(questions: List<Question>) {
+        updateQuestions { current -> current + questions }
+    }
+
+    override suspend fun deleteQuestion(question: Question) {
+        updateQuestions { current -> current.filter { it != question } }
+    }
+
+    private suspend fun updateQuestions(
         transform: (List<Question>) -> List<Question>
     ) {
         val updated = _state.value.copy(

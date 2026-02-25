@@ -10,34 +10,41 @@ sealed class Question(
 ) {
     abstract val section: Section
 
+    abstract val id: String
+
     abstract val fullPath: String
 
     abstract val sourcePath: String
 
-    abstract val isImportant: Boolean // New Property
+    abstract val isImportant: Boolean
+
+    abstract val questionNumber: String
 
     @Serializable
     @SerialName("Kaplan")
     data class Kaplan(
-        val number: String,
+        override val questionNumber: String,
         override val section: Section,
         override val isImportant: Boolean = false
     ) : Question(source = Source.Kaplan) {
-        override val fullPath: String get() = "${source.label}: Q$number${if (isImportant) " ⭐" else ""}"
+        override val id: String = toString()
+        override val fullPath: String get() = "${source.label}: Q$questionNumber${if (isImportant) " ⭐" else ""}"
 
-        override val sourcePath: String get() = "Q$number${if (isImportant) " ⭐" else ""}"
+        override val sourcePath: String get() = "Q$questionNumber${if (isImportant) " ⭐" else ""}"
     }
 
     @Serializable
     @SerialName("Bpp")
     data class Bpp(
-        val number: String,
+        override val questionNumber: String,
         override val section: Section,
         override val isImportant: Boolean = false
     ) : Question(source = Source.Bpp) {
-        override val fullPath: String get() = "${source.label}: Q$number${if (isImportant) " ⭐" else ""}"
+        override val id: String = toString()
 
-        override val sourcePath: String get() = "Q$number${if (isImportant) " ⭐" else ""}"
+        override val fullPath: String get() = "${source.label}: Q$questionNumber${if (isImportant) " ⭐" else ""}"
+
+        override val sourcePath: String get() = "Q$questionNumber${if (isImportant) " ⭐" else ""}"
     }
 
     @Serializable
@@ -46,9 +53,11 @@ sealed class Question(
         override val section: Section,
         val questionType: String,
         val chapterNumber: String,
-        val questionNumber: String,
+        override val questionNumber: String,
         override val isImportant: Boolean = false
     ) : Question(source = Source.StudyHub) {
+        override val id: String = toString()
+
         override val fullPath: String
             get() =
                 "${source.label}: $questionType: CH-$chapterNumber, Q-$questionNumber${if (isImportant) " ⭐" else ""}"
@@ -57,12 +66,6 @@ sealed class Question(
             get() =
                 "$questionType: CH-$chapterNumber, Q-$questionNumber${if (isImportant) " ⭐" else ""}"
     }
-}
-
-enum class Source(val label: String) {
-    Kaplan("Kaplan"),
-    Bpp("BPP"),
-    StudyHub("Study Hub")
 }
 
 

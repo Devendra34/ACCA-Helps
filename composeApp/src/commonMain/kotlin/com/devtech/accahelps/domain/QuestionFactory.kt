@@ -4,20 +4,24 @@ import com.devtech.accahelps.model.Question
 import com.devtech.accahelps.model.Section
 import com.devtech.accahelps.model.Source
 
+data class QuestionRangeInput(
+    val source: Source,
+    val section: Section,
+    val inputRange: String,
+    val type: String = "",
+    val chapter: String = "",
+    val isImportant: Boolean = false
+)
+
 object QuestionFactory {
 
     fun newQuestions(
-        source: Source,
-        section: Section,
-        inputRange: String,
-        type: String = "",
-        studyHubChapter: String = "",
-        isImportant: Boolean = false
+        input: QuestionRangeInput,
     ): List<Question> {
         val questionsToAdd = mutableListOf<Question>()
 
         // 1. Split by comma to get discrete parts (e.g., "1-5, 10, 12-14")
-        val segments = inputRange.split(",")
+        val segments = input.inputRange.split(",")
 
         for (segment in segments) {
             val trimmedSegment = segment.trim()
@@ -37,40 +41,34 @@ object QuestionFactory {
                 val range = if (start <= end) start..end else start downTo end
                 for (i in range) {
                     questionsToAdd.add(
-                        newQuestion(
-                            source,
-                            i.toString(),
-                            section,
-                            type,
-                            studyHubChapter,
-                            isImportant
-                        )
+                        newQuestion(input, i.toString())
                     )
                 }
             } else if (rangeParts.size == 1) {
                 // It's a single number: e.g., "10"
                 if (rangeParts[0].isBlank()) continue
                 questionsToAdd.add(
-                    // Pass isImportant to your helper
-                    newQuestion(source, rangeParts[0], section, type, studyHubChapter, isImportant)
+                    newQuestion(input, rangeParts[0])
                 )
             }
         }
-        return questionsToAdd.distinctBy { it.fullPath }
+        return questionsToAdd.distinctBy { it.id }
     }
 
     fun newQuestion(
-        source: Source,
-        number: String,
-        section: Section,
-        type: String,
-        chapter: String,
-        isImportant: Boolean
+        input: QuestionRangeInput,
+        questionNumber: String,
     ): Question {
-        return when (source) {
-            Source.Kaplan -> Question.Kaplan(number, section, isImportant)
-            Source.Bpp -> Question.Bpp(number, section, isImportant)
-            Source.StudyHub -> Question.StudyHub(section, type, chapter, number, isImportant)
+        return when (input.source) {
+            Source.Kaplan -> Question.Kaplan(questionNumber, input.section, input.isImportant)
+            Source.Bpp -> Question.Bpp(questionNumber, input.section, input.isImportant)
+            Source.StudyHub -> Question.StudyHub(
+                input.section,
+                input.type,
+                input.chapter,
+                questionNumber,
+                input.isImportant
+            )
         }
     }
 }

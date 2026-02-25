@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         val container = (application as MainApp).appContainer
 
         setContent {
-            QuestionPickerApp(repository = container.repository)
+            QuestionPickerApp(appContainer = container)
         }
     }
 }

@@ -9,7 +9,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlin.serialization)
-
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -25,6 +25,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.sqldelight.android)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -41,6 +42,12 @@ kotlin {
             implementation(libs.androidx.datastore.core)
             implementation(libs.kotlinx.datetime)
 
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.cio)
+            implementation(libs.ktor.client.logging)
+
+            implementation(libs.sqldelight.coroutines)
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -48,6 +55,7 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.sqldelight.desktop)
         }
     }
 }
@@ -116,6 +124,7 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
             packageName = "ACCA Buddy"
             packageVersion = "1.0.0"
+            modules("java.sql")
             linux {
                 iconFile.set(project.file("src/commonMain/composeResources/drawable/app_logo.png"))
             }
@@ -129,8 +138,17 @@ compose.desktop {
         }
     }
 }
+
 compose.resources {
     // This generates the 'Res' class and makes it accessible to your code
     publicResClass = true
     packageOfResClass = "com.devtech.accahelps"
+}
+
+sqldelight {
+    databases {
+        create("AppDatabase") {
+            packageName.set("com.devtech.accahelps")
+        }
+    }
 }

@@ -17,8 +17,3 @@ data class SourceState(
     val isSelected: MutableState<Boolean> = mutableStateOf(true)
 )
 
-enum class Section(val label: String) {
-    A("Section A"),
-    B("Section B"),
-    C("Section C"),
-}

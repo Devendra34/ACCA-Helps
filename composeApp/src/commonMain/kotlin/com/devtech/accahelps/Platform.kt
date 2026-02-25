@@ -4,9 +4,7 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
-import com.devtech.accahelps.domain.repo.JsonQuestionRepository
 import okio.Path.Companion.toPath
-import java.io.File
 
 interface Platform {
     val name: String
@@ -26,11 +24,6 @@ fun createDataStore(producePath: () -> String): DataStore<Preferences> =
     )
 
 const val DATASTORE_FILE_NAME = "app_state.json"
-
-class AppContainer(storeFolder: File) {
-    val repository = JsonQuestionRepository(File(storeFolder, DATASTORE_FILE_NAME))
-}
-
 
 fun shareToWhatsApp(text: String) {
     // We must encode the text so characters like space, &, and \n don't break the URL

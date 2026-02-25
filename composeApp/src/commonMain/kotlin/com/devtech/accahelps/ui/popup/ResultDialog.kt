@@ -1,4 +1,4 @@
-package com.devtech.accahelps.ui
+package com.devtech.accahelps.ui.popup
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
