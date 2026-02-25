@@ -1,4 +1,4 @@
-rootProject.name = "ACCAHelps"
+rootProject.name = "ACCA_Buddy"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

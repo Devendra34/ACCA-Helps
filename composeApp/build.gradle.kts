@@ -77,8 +77,8 @@ android {
         applicationId = "com.devtech.accahelps"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = libs.versions.appCode.get().toInt()
+        versionName = libs.versions.appVersion.get()
     }
     packaging {
         resources {
@@ -110,6 +110,17 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
     }
+
+    applicationVariants.all {
+
+        outputs.all {
+            val versionSuffix = "-v${libs.versions.appVersion.get()}" // or your logic
+            if (this is com.android.build.gradle.internal.api.BaseVariantOutputImpl) {
+                val newName = "${rootProject.name}$versionSuffix.apk"
+                outputFileName = newName
+            }
+        }
+    }
 }
 
 dependencies {
@@ -123,13 +134,12 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
             packageName = "ACCA Buddy"
-            packageVersion = "1.0.0"
+            packageVersion = libs.versions.appVersion.get()
             modules("java.sql")
             linux {
                 iconFile.set(project.file("src/commonMain/composeResources/drawable/app_logo.png"))
             }
             macOS {
-                dockName = "ACCA Buddy"
                 iconFile.set(project.file("src/jvmMain/resources/app_logo.icns"))
             }
             windows {

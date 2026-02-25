@@ -30,7 +30,6 @@ jobs:
       - name: Build APK
         run: |
           ./gradlew :composeApp:assembleRelease
-          mv composeApp/build/outputs/apk/release/composeApp-release.apk composeApp/build/outputs/apk/release/ACCA_Buddy.apk
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -39,7 +38,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: composeApp/build/outputs/apk/release/ACCA_Buddy.apk
+          path: composeApp/build/outputs/apk/release/**/*.apk
       - name: Clean up keystore file
         run: |
           rm -f keystore.jks
