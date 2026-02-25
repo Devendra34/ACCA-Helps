@@ -4,8 +4,6 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
-import com.devtech.accahelps.domain.QuestionRepository
-import kotlinx.serialization.json.Json
 import okio.Path.Companion.toPath
 
 interface Platform {
@@ -17,19 +15,18 @@ expect fun getPlatform(): Platform
 
 expect fun String.toClipEntry(): ClipEntry
 
+expect fun String.urlEncode(): String
+expect fun openUrl(url: String)
+
 fun createDataStore(producePath: () -> String): DataStore<Preferences> =
     PreferenceDataStoreFactory.create(
         produceFile = { producePath().toPath().toFile() }
     )
 
-const val DATASTORE_FILE_NAME = "questions.preferences_pb"
+const val DATASTORE_FILE_NAME = "app_state.json"
 
-class AppContainer(dataStore: DataStore<Preferences>) {
-    private val json = Json {
-        ignoreUnknownKeys = true
-        prettyPrint = false
-        encodeDefaults = true
-    }
-
-    val repository = QuestionRepository(dataStore, json)
+fun shareToWhatsApp(text: String) {
+    // We must encode the text so characters like space, &, and \n don't break the URL
+    val encodedText = text.urlEncode()
+    openUrl("https://wa.me/?text=$encodedText")
 }

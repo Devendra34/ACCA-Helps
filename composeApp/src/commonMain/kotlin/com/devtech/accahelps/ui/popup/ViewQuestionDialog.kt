@@ -1,4 +1,4 @@
-package com.devtech.accahelps.ui
+package com.devtech.accahelps.ui.popup
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,17 +38,16 @@ fun ViewQuestionsDialog(
     viewModel: MainViewModel,
     onDismiss: () -> Unit,
 ) {
-    val questions by viewModel.questionsForFlow(source, section)
-        .collectAsStateWithLifecycle(emptyList())
+    val questions by viewModel.viewQuestions.collectAsStateWithLifecycle()
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Column {
-                Text("${source.label} Questions")
+                Text(section.label)
                 Text(
-                    text = "Section: ${section.label}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.outline
+                    text = source.label,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
@@ -60,12 +59,22 @@ fun ViewQuestionsDialog(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 } else {
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(questions) { question ->
-                            QuestionListItem(
-                                question,
-                                onDelete = { viewModel.removeQuestion(question) })
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        LazyColumn(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(questions) { question ->
+                                QuestionListItem(
+                                    question,
+                                    onDelete = { viewModel.removeQuestion(question) })
+                            }
                         }
+                        Text(
+                            "Total Questions: (${questions.size})",
+                        )
                     }
                 }
             }
@@ -90,17 +99,9 @@ fun QuestionListItem(question: Question, onDelete: () -> Unit) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = question.fullPath,
+                    text = question.sourcePath,
                     style = MaterialTheme.typography.bodyMedium
                 )
-                // If it's StudyHub, show extra details as a sub-caption
-                if (question is Question.StudyHub) {
-                    Text(
-                        text = "Type: ${question.questionType} • Ch: ${question.chapterNumber}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }
             }
             IconButton(onClick = onDelete) {
                 Icon(

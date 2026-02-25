@@ -5,23 +5,25 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
-import com.devtech.accahelps.domain.IQuestionRepository
 import com.devtech.accahelps.domain.QuestionFactory
-import com.devtech.accahelps.domain.QuestionsSelector
+import com.devtech.accahelps.domain.QuestionRangeInput
+import com.devtech.accahelps.domain.repo.IQuestionRepository
+import com.devtech.accahelps.domain.repo.SyncRepository
 import com.devtech.accahelps.model.AppSettings
 import com.devtech.accahelps.model.Question
 import com.devtech.accahelps.model.Section
 import com.devtech.accahelps.model.SectionSelection
 import com.devtech.accahelps.model.SectionState
 import com.devtech.accahelps.model.Source
-import com.devtech.accahelps.model.questionFor
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -35,24 +37,34 @@ data class GeneratorUiState(
 )
 
 class MainViewModel(
-    private val repository: IQuestionRepository
+    private val repository: IQuestionRepository,
+    private val syncRepository: SyncRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(GeneratorUiState())
     val uiState: StateFlow<GeneratorUiState> = _uiState.asStateFlow()
 
+    private val _isSyncing = MutableStateFlow(false)
+    val isSyncing = _isSyncing.asStateFlow()
 
-    val addedQuestions = repository.getQuestionsFlow()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val canEditQuestions = repository.canEdit()
 
-    fun questionsForFlow(source: Source, section: Section) = addedQuestions.map { questions ->
-        questions.questionFor(section, source)
-    }
+    val viewQuestionsFor = MutableStateFlow<Pair<Source, Section>?>(null)
+
+    val addQuestionsFor = MutableStateFlow<Pair<Source, Section>?>(null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val viewQuestions = viewQuestionsFor.flatMapLatest {
+        if (it == null) return@flatMapLatest flowOf(emptyList())
+        repository.getQuestionsFlow(it.second, it.first)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
 
     val sections = listOf(
         SectionState(Section.A),
         SectionState(Section.B),
         SectionState(Section.C),
     )
+
     init {
         viewModelScope.launch {
             loadAndObserveSelections()
@@ -77,7 +89,8 @@ class MainViewModel(
                 SectionSelection(
                     it.section,
                     it.isEnabled.value,
-                    it.sourcesState.filter { s -> s.isSelected.value }.map { s -> s.source }.toSet()
+                    it.sourcesState.filter { s -> s.isSelected.value }.map { s -> s.source }
+                        .toHashSet()
                 )
             }
         }.collect { currentSelections ->
@@ -88,16 +101,13 @@ class MainViewModel(
     fun generateQuestions() {
         viewModelScope.launch(Dispatchers.Default) {
             _uiState.update { it.copy(isLoading = true) }
-            val questions = addedQuestions.first { it.isNotEmpty() }
 
-            // Perform randomization
-            val results = sections.filter { it.isEnabled.value }.associate { sectionState ->
-                val pool = sectionState.sourcesState
-                    .filter { it.isSelected.value }
-                    .flatMap { questions.questionFor(sectionState.section, it.source) }
-
-                val maxQuestions = QuestionsSelector.maxQuestionsFor(sectionState.section)
-                sectionState.section to pool.shuffled().take(maxQuestions)
+            val results = sections.filter { it.isEnabled.value }.associate { selectedSection ->
+                val selectedSources =
+                    selectedSection.sourcesState.filter { sourceState -> sourceState.isSelected.value }
+                        .map { it.source }
+                val questions = repository.generateRandom(selectedSection.section, selectedSources)
+                selectedSection.section to questions
             }
 
             _uiState.update {
@@ -115,35 +125,56 @@ class MainViewModel(
     }
 
     fun addQuestionRange(
-        source: Source,
-        section: Section,
-        inputRange: String,
-        type: String = "",
-        studyHubChapter: String = ""
+        input: QuestionRangeInput,
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            val newOnes = QuestionFactory.newQuestions(
-                source, section, inputRange, type, studyHubChapter
-            )
-            repository.updateQuestions { current -> current + newOnes }
+            val newOnes = QuestionFactory.newQuestions(input)
+            repository.addQuestions(newOnes)
         }
     }
 
     fun removeQuestion(question: Question) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.updateQuestions { current -> current.filter { it != question } }
+            repository.deleteQuestion(question)
         }
+    }
+
+    fun onRequestSync() {
+        viewModelScope.launch { requestSync() }
+    }
+
+    fun ensureDataIsLoaded() {
+        viewModelScope.launch {
+            val alreadyHasData = syncRepository.hasData()
+            if (!alreadyHasData) {
+                println("Initial launch detected: Fetching data from Sheet...")
+                requestSync()
+            } else {
+                println("Data already present. Skipping initial sync.")
+            }
+        }
+    }
+
+    private suspend fun requestSync() {
+        _isSyncing.value = true
+        try {
+            syncRepository.syncFromSheet()
+        } catch (e: Exception) {
+            println("Error $e")
+        }
+        _isSyncing.value = false
     }
 }
 
 
 class MainViewModelFactory(
-    private val repository: IQuestionRepository
+    private val repository: IQuestionRepository,
+    private val syncRepository: SyncRepository,
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: KClass<T>, extras: CreationExtras): T {
         if (modelClass == MainViewModel::class) {
             @Suppress("UNCHECKED_CAST")
-            return MainViewModel(repository) as T
+            return MainViewModel(repository, syncRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -12,11 +12,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        val dataStore = initAndroidDataStore(applicationContext)
-        val container = AppContainer(dataStore)
+        val container = (application as MainApp).appContainer
 
         setContent {
-            QuestionPickerApp(repository = container.repository)
+            QuestionPickerApp(appContainer = container)
         }
     }
 }
